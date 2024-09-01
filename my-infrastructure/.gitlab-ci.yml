@@ -2,10 +2,21 @@ image: registry.gitlab.com/gitlab-org/terraform-images/stable:latest
 
 variables:
   TF_ROOT: ${CI_PROJECT_DIR}
+  TF_HTTP_PASSWORD: ${CI_JOB_TOKEN}
+  TF_HTTP_ADDRESS: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${CI_PROJECT_NAME}-tfstate
+  TF_HTTP_LOCK_ADDRESS: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${CI_PROJECT_NAME}-tfstate/lock
+  TF_HTTP_UNLOCK_ADDRESS: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${CI_PROJECT_NAME}-tfstate/lock
+  TF_HTTP_LOCK_METHOD : POST
+  TF_HTTP_UNLOCK_METHOD: DELETE
+  TF_HTTP_RETRY_WAIT_MIN: 1
   MICRO_SERVICES: ["service1", "service2"]
   CLOUD_PROVIDERS: ["aws"]
   REGIONS: ["us-east-1"]
   ENVIRONMENTS: ["dev"]
+  STATE_BUCKET: "my-terraform-state-bucket"
+  STATE_KEY: "us-east-1/dev/terraform.tfstate"
+  STATE_REGION: "us-east-1"
+  DYNAMODB_TABLE: "my-terraform-lock-table"
 
 stages:
   - lint
@@ -19,7 +30,7 @@ stages:
   - extract-outputs
   - deploy
   - test
-  - tf-destroy
+  # - notify
 
 before_script:
   - cd ${TF_ROOT}
@@ -46,18 +57,22 @@ security-scan:
 build:
   stage: build
   script:
-    - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin
+    - aws ecr get-login-password --region ${STATE_REGION} | docker login --username AWS --password-stdin
     - for service in ${MICRO_SERVICES}; do
         docker build -t $CI_REGISTRY_IMAGE/${service}:$CI_COMMIT_SHA ./microservices/${service};
         docker tag $CI_REGISTRY_IMAGE/${service}:$CI_COMMIT_SHA ${ECR_URI}/${service}:$CI_COMMIT_SHA;
         docker push ${ECR_URI}/${service}:$CI_COMMIT_SHA;
       done
 
-# Initialize Terraform
+# Initialize Terraform with Backend Configuration
 tf-init:
   stage: tf-init
   script:
-    - terraform init
+    - terraform init \
+      -backend-config="bucket=${STATE_BUCKET}" \
+      -backend-config="key=${STATE_KEY}" \
+      -backend-config="region=${STATE_REGION}" \
+      -backend-config="dynamodb_table=${DYNAMODB_TABLE}"
 
 # Format Terraform files
 tf-fmt:
@@ -104,11 +119,28 @@ deploy:
         NAMESPACE="${service}-ns"
         # Create namespace if it doesn't exist
         kubectl get namespace $NAMESPACE || kubectl create namespace $NAMESPACE
+
+        # Automatically increment the patch version in Chart.yaml
+        CURRENT_VERSION=$(grep '^version:' ./modules/application/helm/microservices/$service/Chart.yaml | awk '{print $2}')
+        NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. -v OFS=. '{$NF++;print}')
+        sed -i "s/^version:.*/version: $NEW_VERSION/" ./modules/application/helm/microservices/$service/Chart.yaml
+
         # Replace the placeholder in values.yaml with the actual ECR URI
-        sed -i "s|<ECR_URI>|$REPO_URI|g" ./modules/application/helm-charts/microservices/$service/values.yaml
-        helm upgrade --install $service ./modules/application/helm-charts/microservices/$service \
+        sed -i "s|<ECR_URI>|$REPO_URI|g" ./modules/application/helm/microservices/$service/values.yaml
+
+        # Commit the version update back to Git
+        git config --global user.email "ci@example.com"
+        git config --global user.name "CI Pipeline"
+        git add ./modules/application/helm/microservices/$service/Chart.yaml
+        git commit -m "Auto-incremented Helm chart version to $NEW_VERSION for $service"
+        git tag "${service}-v$NEW_VERSION"
+        git push origin HEAD:master --tags
+
+        # Deploy using Helm
+        helm upgrade --install $service ./modules/application/helm/microservices/$service \
             --set image.repository=$REPO_URI \
-            --namespace $NAMESPACE;
+            --namespace $NAMESPACE \
+            --version $NEW_VERSION;
       done
 
 # Testing with Terratest
@@ -117,6 +149,12 @@ test:
   script:
     - go test -v -run TestEKS tests/terratest/test_eks.go
     - go test -v -run TestVPC tests/terratest/test_vpc.go
+
+# Slack notifications (commented out for now)
+# notify:
+#   stage: notify
+#   script:
+#     - curl -X POST -H 'Content-type: application/json' --data '{"text":"Deployment of $service version $NEW_VERSION completed."}' https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX
 
 tf-destroy:
   extends: .tf-job-template

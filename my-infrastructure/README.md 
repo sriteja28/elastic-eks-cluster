@@ -94,3 +94,54 @@ Summary
 	•	Automation: This process is fully automated within the GitLab CI/CD pipeline, ensuring that your microservices are deployed with the correct Docker image repository.
 
 This setup ensures that your Kubernetes deployments are always using the correct image from ECR, with minimal manual intervention.
+
+	•	Helm Chart Versioning: Automatically increments the Helm chart version during deployment.
+	•	Git Commit and Tagging: Commits the updated version back to the Git repository and creates a new tag.
+	•	Slack Notification: A placeholder for Slack notifications is commented out and can be activated later.
+
+
+Low Configuration Changes (Can be Easily Added to Current Code)
+
+	1.	Automated Terraform Format and Validation Before Commit
+	•	Implementation:
+	•	You can add a .pre-commit-config.yaml file to your repository.
+	•	Install the pre-commit tool and add hooks for terraform fmt and terraform validate.
+	•	Impact: Minimal changes; it only affects local development and commits.
+	2.	Automated Dependency Management
+	•	Implementation:
+	•	Integrate Dependabot or Renovate directly into your GitHub repository.
+	•	Impact: Minimal; no changes to the pipeline itself, just a configuration in your repository.
+	3.	Automated Documentation Generation
+	•	Implementation:
+	•	Add a terraform-docs command to your CI pipeline.
+	•	Impact: Minimal; you can integrate this into the existing pipeline to auto-generate documentation.
+
+Medium Configuration Changes (Requires Some Adjustments)
+
+	4.	Automated Code Reviews
+	•	Implementation:
+	•	Integrate tools like SonarQube or Checkov into your CI/CD pipeline for static analysis and security scanning.
+	•	Impact: Requires adding new stages or jobs in your CI pipeline, as well as setting up the necessary scanning tools.
+	5.	Notification and Monitoring Enhancements
+	•	Implementation:
+	•	Expand the Slack integration or add new integrations (e.g., PagerDuty).
+	•	Impact: Medium; involves adding additional notification configurations and potentially modifying existing pipeline stages.
+	6.	Automated Security Scans for Terraform State
+	•	Implementation:
+	•	Use AWS Config or custom Lambda functions to ensure S3 bucket security.
+	•	Impact: Medium; requires setting up AWS Config rules or Lambda functions, which is outside of the pipeline but interacts with it.
+
+High Configuration Changes (Significant Overhaul Required)
+
+	7.	Terraform Cloud/Enterprise Integration
+	•	Implementation:
+	•	Migrate to Terraform Cloud/Enterprise for state management and remote execution.
+	•	Impact: High; requires significant changes in how Terraform is run, including moving state management to Terraform Cloud.
+	8.	Automated Rollbacks and Blue-Green Deployments
+	•	Implementation:
+	•	Add blue-green or canary deployment strategies using Helm and Kubernetes tools like Argo Rollouts.
+	•	Impact: High; requires restructuring how deployments are handled, along with adding new tools and stages to the pipeline.
+	9.	Automated Cost Management
+	•	Implementation:
+	•	Add cost allocation tags in Terraform configurations and integrate with cost management tools like AWS Trusted Advisor.
+	•	Impact: High; requires tagging consistency across resources and integration with cost management tools, potentially adding new pipeline stages for cost checks.
