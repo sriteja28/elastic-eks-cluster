@@ -1,0 +1,53 @@
+
+```
+my-infrastructure/
+├── environments/
+│   ├── aws/
+│   │   ├── eu-central-1/
+│   │   │   ├── dev/           
+│   │   │   ├── prod/
+│   │   ├── us-east-1/
+│   │   │   ├── dev/           
+│   │   │   ├── prod/
+├── modules/
+│   ├── networking/
+│   │   ├── vpc/
+│   │   ├── security-groups/
+│   │   ├── route53/
+│   ├── compute/
+│   │   ├── ec2/
+│   │   ├── autoscaling/
+│   │   ├── eks/
+│   │   ├── ecs/
+│   ├── data/
+│   │   ├── rds/
+│   │   ├── dynamodb/
+│   │   ├── elasticache/
+│   │   ├── s3/
+│   │   ├── emr/
+│   ├── application/
+│   │   ├── alb/
+│   │   ├── iam/
+│   │   ├── lambda/
+│   │   ├── apigateway/
+│   │   ├── helm/                  # Centralized Helm charts
+│   │   │   ├── common/            # Helm charts for common resources
+│   │   │   │   ├── templates/
+│   │   │   │   ├── values.yaml
+│   │   │   │   ├── Chart.yaml
+│   │   │   ├── microservices/
+│   │   │   │   ├── service1/
+│   │   │   │   ├── service1/
+│   │   │   ├── infrastructure/
+│   │   │   │   ├── ingress/       # Helm charts for Ingress controllers
+│   │   │   │   ├── monitoring/    # Helm charts for Prometheus, Grafana
+│   │   │   │   ├── logging/       # Helm charts for ELK Stack
+│   │   │   │   ├── service-mesh/  # Helm charts for Istio or Linkerd
+│   │   │   │   ├── big-data/      # Helm charts for Kafka, Spark, Hadoop
+├── tests/
+│   ├── security
+│   │   ├── tfsec
+│   │   └── trivy
+│   └── terratest
+└── README.md
+```

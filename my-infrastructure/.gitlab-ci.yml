@@ -1,0 +1,96 @@
+image: registry.gitlab.com/gitlab-org/terraform-images/stable:latest
+
+variables:
+  TF_ROOT: ${CI_PROJECT_DIR}
+  MICRO_SERVICES: ["service1", "service2"]
+  CLOUD_PROVIDERS: ["aws"]
+  REGIONS: ["us-east-1", "us-west-2"]
+  ENVIRONMENTS: ["dev", "prod"]
+
+stages:
+  - lint
+  - security-scan
+  - build
+  - tf-init
+  - tf-fmt
+  - tf-validate
+  - tf-plan
+  - tf-apply
+  - test
+  - tf-destroy
+
+before_script:
+  - cd ${TF_ROOT}
+  - apk add --no-cache python3 py-pip
+  - pip3 install awscli
+
+# Terraform linting
+lint:
+  stage: lint
+  script:
+    - tflint --init
+    - tflint
+
+# Security scanning
+security-scan:
+  stage: security-scan
+  script:
+    - tfsec .
+    - trivy image --exit-code 1 --severity HIGH $CI_REGISTRY_IMAGE/${MICRO_SERVICE}:$CI_COMMIT_SHA
+
+# Looping over microservices for building Docker images
+build:
+  stage: build
+  script:
+    - for service in ${MICRO_SERVICES}; do
+        docker build -t $CI_REGISTRY_IMAGE/${service}:$CI_COMMIT_SHA ./microservices/${service};
+        docker push $CI_REGISTRY_IMAGE/${service}:$CI_COMMIT_SHA;
+      done
+
+# Looping over cloud providers, regions, and environments for Terraform jobs
+.tf-job-template:
+  script:
+    - for region in ${REGIONS}; do
+        for env in ${ENVIRONMENTS}; do
+          cd environments/${CLOUD_PROVIDERS[0]}/$region/$env;
+          gitlab-terraform ${COMMAND};
+        done;
+      done
+
+tf-init:
+  extends: .tf-job-template
+  variables:
+    COMMAND: "init"
+
+tf-fmt:
+  extends: .tf-job-template
+  variables:
+    COMMAND: "fmt -recursive"
+
+tf-validate:
+  extends: .tf-job-template
+  variables:
+    COMMAND: "validate"
+
+tf-plan:
+  extends: .tf-job-template
+  variables:
+    COMMAND: "plan"
+
+tf-apply:
+  extends: .tf-job-template
+  variables:
+    COMMAND: "apply"
+
+# Testing with Terratest
+test:
+  stage: test
+  script:
+    - go test -v -run TestEKS tests/terratest/test_eks.go
+    - go test -v -run TestVPC tests/terratest/test_vpc.go
+
+tf-destroy:
+  extends: .tf-job-template
+  variables:
+    COMMAND: "destroy -auto-approve"
+  when: manual
