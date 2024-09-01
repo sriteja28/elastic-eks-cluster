@@ -1,14 +1,10 @@
-image: registry.gitlab.com/gitlab-org/terraform-images/stable:latest
+include:
+  - template: Terraform/Base.gitlab-ci.yml
+  - template: Jobs/SAST-IaC.gitlab-ci.yml
 
 variables:
-  TF_ROOT: ${CI_PROJECT_DIR}
-  TF_HTTP_PASSWORD: ${CI_JOB_TOKEN}
-  TF_HTTP_ADDRESS: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${CI_PROJECT_NAME}-tfstate
-  TF_HTTP_LOCK_ADDRESS: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${CI_PROJECT_NAME}-tfstate/lock
-  TF_HTTP_UNLOCK_ADDRESS: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/${CI_PROJECT_NAME}-tfstate/lock
-  TF_HTTP_LOCK_METHOD : POST
-  TF_HTTP_UNLOCK_METHOD: DELETE
-  TF_HTTP_RETRY_WAIT_MIN: 1
+  TF_STATE_NAME: default
+  TF_ROOT: ${CI_PROJECT_DIR}/my-infrastructure
   MICRO_SERVICES: ["service1", "service2"]
   CLOUD_PROVIDERS: ["aws"]
   REGIONS: ["us-east-1"]
@@ -17,7 +13,7 @@ variables:
   STATE_KEY: "us-east-1/dev/terraform.tfstate"
   STATE_REGION: "us-east-1"
   DYNAMODB_TABLE: "my-terraform-lock-table"
-
+  
 stages:
   - lint
   - security-scan
@@ -39,14 +35,14 @@ before_script:
 
 # Terraform linting
 lint:
-  stage: lint
+  extends: lint
   script:
     - tflint --init
     - tflint
 
 # Security scanning
 security-scan:
-  stage: security-scan
+  extends: security-scan
   script:
     - tfsec .
     - for service in ${MICRO_SERVICES}; do
@@ -55,7 +51,7 @@ security-scan:
 
 # Build and push Docker images to ECR
 build:
-  stage: build
+  extends: build
   script:
     - aws ecr get-login-password --region ${STATE_REGION} | docker login --username AWS --password-stdin
     - for service in ${MICRO_SERVICES}; do
@@ -66,7 +62,7 @@ build:
 
 # Initialize Terraform with Backend Configuration
 tf-init:
-  stage: tf-init
+  extends: tf-init
   script:
     - terraform init \
       -backend-config="bucket=${STATE_BUCKET}" \
@@ -76,31 +72,31 @@ tf-init:
 
 # Format Terraform files
 tf-fmt:
-  stage: tf-fmt
+  extends: tf-fmt
   script:
     - terraform fmt -recursive
 
 # Validate Terraform configuration
 tf-validate:
-  stage: tf-validate
+  extends: tf-validate
   script:
     - terraform validate
 
 # Plan Terraform deployment
 tf-plan:
-  stage: tf-plan
+  extends: tf-plan
   script:
     - terraform plan -out=tfplan
 
 # Apply Terraform deployment
 tf-apply:
-  stage: tf-apply
+  extends: tf-apply
   script:
     - terraform apply -auto-approve tfplan
 
 # Extract Terraform outputs and save as environment variables
 extract-outputs:
-  stage: extract-outputs
+  extends: extract-outputs
   script:
     - echo "Extracting ECR URIs..."
     - ECR_URIS=$(terraform output -json ecr_repository_uris | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]')
@@ -111,7 +107,7 @@ extract-outputs:
 
 # Deploy microservices using Helm into their respective namespaces
 deploy:
-  stage: deploy
+  extends: deploy
   script:
     - source ecr_uris.env
     - for service in ${MICRO_SERVICES}; do
@@ -145,14 +141,14 @@ deploy:
 
 # Testing with Terratest
 test:
-  stage: test
+  extends: test
   script:
     - go test -v -run TestEKS tests/terratest/test_eks.go
     - go test -v -run TestVPC tests/terratest/test_vpc.go
 
 # Slack notifications (commented out for now)
 # notify:
-#   stage: notify
+#   extends: notify
 #   script:
 #     - curl -X POST -H 'Content-type: application/json' --data '{"text":"Deployment of $service version $NEW_VERSION completed."}' https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX
 
