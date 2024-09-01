@@ -4,8 +4,8 @@ variables:
   TF_ROOT: ${CI_PROJECT_DIR}
   MICRO_SERVICES: ["service1", "service2"]
   CLOUD_PROVIDERS: ["aws"]
-  REGIONS: ["us-east-1", "us-west-2"]
-  ENVIRONMENTS: ["dev", "prod"]
+  REGIONS: ["us-east-1"]
+  ENVIRONMENTS: ["dev"]
 
 stages:
   - lint
@@ -16,12 +16,14 @@ stages:
   - tf-validate
   - tf-plan
   - tf-apply
+  - extract-outputs
+  - deploy
   - test
   - tf-destroy
 
 before_script:
   - cd ${TF_ROOT}
-  - apk add --no-cache python3 py-pip
+  - apk add --no-cache python3 py-pip jq
   - pip3 install awscli
 
 # Terraform linting
@@ -36,51 +38,78 @@ security-scan:
   stage: security-scan
   script:
     - tfsec .
-    - trivy image --exit-code 1 --severity HIGH $CI_REGISTRY_IMAGE/${MICRO_SERVICE}:$CI_COMMIT_SHA
+    - for service in ${MICRO_SERVICES}; do
+        trivy image --exit-code 1 --severity HIGH $CI_REGISTRY_IMAGE/${service}:$CI_COMMIT_SHA;
+      done
 
-# Looping over microservices for building Docker images
+# Build and push Docker images to ECR
 build:
   stage: build
   script:
+    - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin
     - for service in ${MICRO_SERVICES}; do
         docker build -t $CI_REGISTRY_IMAGE/${service}:$CI_COMMIT_SHA ./microservices/${service};
-        docker push $CI_REGISTRY_IMAGE/${service}:$CI_COMMIT_SHA;
+        docker tag $CI_REGISTRY_IMAGE/${service}:$CI_COMMIT_SHA ${ECR_URI}/${service}:$CI_COMMIT_SHA;
+        docker push ${ECR_URI}/${service}:$CI_COMMIT_SHA;
       done
 
-# Looping over cloud providers, regions, and environments for Terraform jobs
-.tf-job-template:
-  script:
-    - for region in ${REGIONS}; do
-        for env in ${ENVIRONMENTS}; do
-          cd environments/${CLOUD_PROVIDERS[0]}/$region/$env;
-          gitlab-terraform ${COMMAND};
-        done;
-      done
-
+# Initialize Terraform
 tf-init:
-  extends: .tf-job-template
-  variables:
-    COMMAND: "init"
+  stage: tf-init
+  script:
+    - terraform init
 
+# Format Terraform files
 tf-fmt:
-  extends: .tf-job-template
-  variables:
-    COMMAND: "fmt -recursive"
+  stage: tf-fmt
+  script:
+    - terraform fmt -recursive
 
+# Validate Terraform configuration
 tf-validate:
-  extends: .tf-job-template
-  variables:
-    COMMAND: "validate"
+  stage: tf-validate
+  script:
+    - terraform validate
 
+# Plan Terraform deployment
 tf-plan:
-  extends: .tf-job-template
-  variables:
-    COMMAND: "plan"
+  stage: tf-plan
+  script:
+    - terraform plan -out=tfplan
 
+# Apply Terraform deployment
 tf-apply:
-  extends: .tf-job-template
-  variables:
-    COMMAND: "apply"
+  stage: tf-apply
+  script:
+    - terraform apply -auto-approve tfplan
+
+# Extract Terraform outputs and save as environment variables
+extract-outputs:
+  stage: extract-outputs
+  script:
+    - echo "Extracting ECR URIs..."
+    - ECR_URIS=$(terraform output -json ecr_repository_uris | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]')
+    - echo $ECR_URIS > ecr_uris.env
+  artifacts:
+    reports:
+      dotenv: ecr_uris.env
+
+# Deploy microservices using Helm into their respective namespaces
+deploy:
+  stage: deploy
+  script:
+    - source ecr_uris.env
+    - for service in ${MICRO_SERVICES}; do
+        REPO_URI=$(echo ${!service})
+        NAMESPACE="${service}-ns"
+        # Create namespace if it doesn't exist
+        kubectl get namespace $NAMESPACE || kubectl create namespace $NAMESPACE
+        # Replace the placeholder in values.yaml with the actual ECR URI
+        sed -i "s|<ECR_URI>|$REPO_URI|g" ./modules/application/helm-charts/microservices/$service/values.yaml
+        helm upgrade --install $service ./modules/application/helm-charts/microservices/$service \
+            --set image.repository=$REPO_URI \
+            --namespace $NAMESPACE;
+      done
 
 # Testing with Terratest
 test:

@@ -41,7 +41,7 @@ module "vpc" {
   source = "../../modules/networking/vpc"
 
   vpc_name  = "${local.name}-vpc"
-  vpc_cidr  = "10.0.0.0/16"
+  vpc_cidr  = var.vpc_cidr
   azs       = data.aws_availability_zones.available.names
   tags      = local.tags
 }
@@ -50,8 +50,15 @@ module "eks" {
   source = "../../modules/compute/eks"
 
   cluster_name  = "${local.name}-eks"
-  cluster_version = "1.30"
+  cluster_version = var.cluster_version
   vpc_id        = module.vpc.vpc_id
   subnet_ids    = module.vpc.private_subnets
+  tags          = local.tags
+}
+
+module "ecr" {
+  source  = "../../modules/application/ecr"
+  microservices = ["service1", "service2"]
+  environment   = var.environment
   tags          = local.tags
 }

@@ -30,6 +30,7 @@ my-infrastructure/
 │   │   ├── iam/
 │   │   ├── lambda/
 │   │   ├── apigateway/
+│   │   ├── ecr/
 │   │   ├── helm/                  # Centralized Helm charts
 │   │   │   ├── common/            # Helm charts for common resources
 │   │   │   │   ├── templates/
@@ -37,7 +38,7 @@ my-infrastructure/
 │   │   │   │   ├── Chart.yaml
 │   │   │   ├── microservices/
 │   │   │   │   ├── service1/
-│   │   │   │   ├── service1/
+│   │   │   │   ├── service2/
 │   │   │   ├── infrastructure/
 │   │   │   │   ├── ingress/       # Helm charts for Ingress controllers
 │   │   │   │   ├── monitoring/    # Helm charts for Prometheus, Grafana
@@ -51,3 +52,45 @@ my-infrastructure/
 │   └── terratest
 └── README.md
 ```
+
+Explanation of the Pipeline
+
+	1.	Variables:
+	•	TF_ROOT: Sets the root directory for Terraform operations.
+	•	MICRO_SERVICES: An array containing the names of the microservices to be built and deployed.
+	•	CLOUD_PROVIDERS, REGIONS, ENVIRONMENTS: Variables defining the target environment for Terraform.
+	2.	Stages:
+	•	Lint: Runs tflint to ensure Terraform files are properly linted.
+	•	Security Scan: Runs tfsec for Terraform security scanning and trivy for Docker image scanning.
+	•	Build: Builds Docker images for the microservices and pushes them to ECR.
+	•	Terraform Stages: tf-init, tf-fmt, tf-validate, tf-plan, tf-apply handle Terraform initialization, formatting, validation, planning, and applying.
+	•	Extract Outputs: Captures Terraform outputs (ECR URIs) and saves them as environment variables.
+	•	Deploy: Uses Helm to deploy the microservices, leveraging the extracted ECR URIs.
+	3.	Artifacts:
+	•	The extract-outputs stage creates a .env file (ecr_uris.env) that is used in the deploy stage to dynamically reference the ECR URIs.
+
+Testing and Usage
+
+	1.	Run the Pipeline: Push your changes to GitLab, and the pipeline will execute automatically.
+	2.	Monitor: Watch each stage in the GitLab CI/CD interface to ensure everything is working as expected.
+	3.	Verify: Ensure that your ECR repositories are created, images are pushed, and microservices are deployed correctly to your Kubernetes cluster.
+
+Summary
+
+This pipeline is a comprehensive CI/CD setup that integrates Terraform, Docker, and Helm, ensuring that your microservices are built, secured, and deployed in a fully automated manner. The use of Terraform outputs to pass dynamic values between stages adds flexibility and power to the pipeline, allowing for smooth and consistent deployments.
+
+
+Explanation of the Automation Process:
+
+	1.	Extract ECR URIs: The extract-outputs stage captures the ECR URIs from Terraform outputs and saves them as environment variables.
+	2.	Deploy Stage:
+	•	Namespace Creation: Ensures that each service has its own namespace.
+	•	Replace Placeholder in values.yaml: The sed command replaces the placeholder <ECR_URI> in the values.yaml file with the actual ECR URI ($REPO_URI).
+	•	Helm Deployment: The Helm command then uses the updated values.yaml to deploy the service.
+
+Summary
+
+	•	Dynamic Insertion: The ECR URIs are dynamically inserted into the values.yaml files of your Helm charts using the sed command before deployment.
+	•	Automation: This process is fully automated within the GitLab CI/CD pipeline, ensuring that your microservices are deployed with the correct Docker image repository.
+
+This setup ensures that your Kubernetes deployments are always using the correct image from ECR, with minimal manual intervention.
