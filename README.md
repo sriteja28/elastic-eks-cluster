@@ -11,7 +11,7 @@ This project is designed following best practices as recommended by HashiCorp fo
 ## Folder Structure
 
 The project is organized into the following structure:
-> Note: (WIP) Still adding modules, for now we have eks, vpc, ecr
+> Note: (WIP) Still adding modules
 
 ```sh
 my-infrastructure/
@@ -114,6 +114,54 @@ terraform workspace select dev  # or staging/prod
 ```hcl
 terraform plan -out=terraform-plan-dev.out
 terraform show terraform-plan-dev.out
+```
+
+Example output
+
+```hcl
+  # module.eks.module.eks.module.kms.aws_kms_alias.this["cluster"] will be created
+  + resource "aws_kms_alias" "this" {
+      + arn            = (known after apply)
+      + id             = (known after apply)
+      + name           = "alias/eks/dev-eks-cluster"
+      + name_prefix    = (known after apply)
+      + target_key_arn = (known after apply)
+      + target_key_id  = (known after apply)
+    }
+
+  # module.eks.module.eks.module.kms.aws_kms_key.this[0] will be created
+  + resource "aws_kms_key" "this" {
+      + arn                                = (known after apply)
+      + bypass_policy_lockout_safety_check = false
+      + customer_master_key_spec           = "SYMMETRIC_DEFAULT"
+      + description                        = "dev-eks-cluster cluster encryption key"
+      + enable_key_rotation                = true
+      + id                                 = (known after apply)
+      + is_enabled                         = true
+      + key_id                             = (known after apply)
+      + key_usage                          = "ENCRYPT_DECRYPT"
+      + multi_region                       = false
+      + policy                             = (known after apply)
+      + rotation_period_in_days            = (known after apply)
+      + tags                               = {
+          + "Environment"           = "dev"
+          + "terraform-aws-modules" = "eks"
+        }
+      + tags_all                           = {
+          + "Environment"           = "dev"
+          + "terraform-aws-modules" = "eks"
+        }
+    }
+
+  # module.eks.module.eks.module.eks_managed_node_group["initial"].module.user_data.null_resource.validate_cluster_service_cidr will be created
+  + resource "null_resource" "validate_cluster_service_cidr" {
+      + id = (known after apply)
+    }
+
+Plan: 70 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + configure_kubectl = "aws eks --region us-east-1 update-kubeconfig --name dev-eks-cluster"
 ```
 
  4.	Apply the Changes (use per need):
