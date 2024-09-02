@@ -52,7 +52,7 @@ module "vpc" {
 module "eks" {
   source = "../../modules/compute/eks"
 
-  cluster_name  = "${local.name}-eks"
+  cluster_name  = "${local.name}-eks-cluster"
   cluster_version = var.cluster_version
   vpc_id        = module.vpc.vpc_id
   subnet_ids    = module.vpc.private_subnets
