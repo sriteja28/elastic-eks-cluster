@@ -35,7 +35,3 @@ jobs:
 
     - name: Terraform Plan
       run: terraform plan -var-file=${{ matrix.workspace }}.tfvars -out=tfplan-${{ matrix.workspace }}.out
-
-    - name: Terraform Apply
-      if: github.ref == 'refs/heads/main' && matrix.workspace == 'prod'
-      run: terraform apply tfplan-${{ matrix.workspace }}.out
