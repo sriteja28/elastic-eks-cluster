@@ -99,6 +99,8 @@ This project uses a remote state backend hosted on Amazon S3 with DynamoDB for s
 - **State Locking**: DynamoDB is used for state locking, ensuring that only one Terraform process can modify the state at a time, preventing conflicts and ensuring consistency.
 - **Secure Storage**: The state file is securely stored in S3, with access controlled via IAM policies.
 
+---
+
 ## Deploy and Destory
 
 To get started with this project, follow these steps:
