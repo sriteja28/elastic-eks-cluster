@@ -8,6 +8,8 @@ This project is designed following best practices as recommended by HashiCorp fo
 - **Modular Design**: The infrastructure is broken down into reusable modules that encapsulate specific functionalities, such as networking, compute, data, and application layers. This modular approach allows for easy scaling and maintenance.
 - **Remote State Backend**: The project uses a remote state backend (S3 with DynamoDB for locking) to store Terraform state files securely. This ensures that the state is centralized, secure, and accessible across different environments and team members, preventing state conflicts and ensuring consistency.
 
+---
+
 ## Folder Structure
 
 The project is organized into the following structure:
