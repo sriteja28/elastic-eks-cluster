@@ -30,16 +30,12 @@ jobs:
     - name: Select Terraform Workspace
       run: terraform workspace select ${{ matrix.workspace }} || terraform workspace new ${{ matrix.workspace }}
 
-    - name: Prepare terraform.tfvars
-      run: |
-        cp terraform.tfvars.tpl terraform.tfvars
-        sed -i "s/\${WORKSPACE_NAME}/${{ matrix.workspace == 'dev' ? 'dev' : matrix.workspace == 'staging' ? 'staging' : 'prod' }}/g" terraform.tfvars
-        sed -i "s/\${WORKSPACE_REGION}/${{ matrix.workspace == 'dev' ? 'us-east-1' : matrix.workspace == 'staging' ? 'us-west-1' : 'us-west-2' }}/g" terraform.tfvars
-        sed -i "s/\${WORKSPACE_ENV}/${{ matrix.workspace == 'dev' ? 'dev' : matrix.workspace == 'staging' ? 'staging' : 'prod' }}/g" terraform.tfvars
-        sed -i "s/\${WORKSPACE_VPC_CIDR}/${{ matrix.workspace == 'dev' ? '10.0.0.0/16' : matrix.workspace == 'staging' ? '10.1.0.0/16' : '10.2.0.0/16' }}/g" terraform.tfvars
-
     - name: Terraform Init
       run: terraform init
 
     - name: Terraform Plan
-      run: terraform plan -out=tfplan-${{ matrix.workspace }}.out
+      run: terraform plan -var-file=${{ matrix.workspace }}.tfvars -out=tfplan-${{ matrix.workspace }}.out
+
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && matrix.workspace == 'prod'
+      run: terraform apply tfplan-${{ matrix.workspace }}.out
