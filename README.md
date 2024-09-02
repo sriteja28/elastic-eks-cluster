@@ -73,6 +73,16 @@ This project uses Terraform workspaces to manage different environments. The env
 -	**stage**: Staging environment
 -	**prod**: Production environment
 
+  
+```hcl
+❯ terraform workspace list
+
+   default
+   dev
+ * prod
+   staging
+```
+
 Workspaces allow us to isolate the state of each environment, ensuring that changes in one environment do not affect others. This approach reduces code duplication and makes it easier to manage infrastructure across multiple environments.
 
 ## Remote State Backend
@@ -87,36 +97,36 @@ This project uses a remote state backend hosted on Amazon S3 with DynamoDB for s
 
 To get started with this project, follow these steps:
 
-	1.	Initialize Terraform:
+1.	Initialize Terraform:
    
-    ```sh
-    terraform init
-    ```
+```sh
+terraform init
+```
 
-    2. Select the Workspace:
+2. Select the Workspace:
   
-    ```sh
-    terraform workspace select dev  # or staging/prod
-    ```
+```sh
+terraform workspace select dev  # or staging/prod
+```
 
-    3. Plan the Infrastructure:
+3. Plan the Infrastructure:
   
-    ```sh
-    terraform plan -out=terraform-plan-dev.out
-    terraform show terraform-plan-dev.out
-    ```
+```sh
+terraform plan -out=terraform-plan-dev.out
+terraform show terraform-plan-dev.out
+```
 
-    4.	Apply the Changes:
+ 4.	Apply the Changes (use per need):
    
-    ```sh
-    terraform apply
-    terraform apply -target="module.vpc" -auto-approve
-    terraform apply -target="module.eks" -auto-approve
-    terraform apply -auto-approve
-    ```
+```sh
+terraform apply
+terraform apply -target="module.vpc" -auto-approve
+terraform apply -target="module.eks" -auto-approve
+terraform apply -auto-approve
+```
 
-    5. Destroy the Infrastructure (if needed):
+5. Destroy the Infrastructure (if needed):
   
-    ```sh
-    terraform destroy -auto-approve
-    ```
+```sh
+terraform destroy -auto-approve
+```
