@@ -18,7 +18,7 @@ terraform {
 
   ##  Used for end-to-end testing on project; update to suit your needs
   backend "s3" {
-    bucket = "terraform-state-file-sri"
+    bucket = "terraform-state-bucket-sri"
     region = "us-east-1"
     key    = "eks/infra/state/terraform.tfstate"
     dynamodb_table = "terraform-state-lock"
