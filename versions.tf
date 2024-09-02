@@ -21,6 +21,6 @@ terraform {
     bucket = "terraform-state-file-sri"
     region = "us-east-1"
     key    = "eks/infra/state/terraform.tfstate"
-    dynamodb_table = "terraform-locks"
+    dynamodb_table = "terraform-state-lock"
   }
 }
