@@ -14,7 +14,7 @@ This project is designed following best practices as recommended by HashiCorp fo
 
 The project is organized into the following structure:
 
-```
+```sh
 my-infrastructure/
 ├── main.tf                     # Main configuration file that ties everything together
 ├── outputs.tf                  # Outputs to be used by other components or displayed after apply
@@ -73,13 +73,14 @@ This project uses Terraform workspaces to manage different environments. The env
 	•	dev: Development environment
 	•	stage: Staging environment
 	•	prod: Production environment
+
     ```hcl
     ❯ terraform workspace list
      default
      dev
    * prod
      staging
-
+    ```
 
 Workspaces allow us to isolate the state of each environment, ensuring that changes in one environment do not affect others. This approach reduces code duplication and makes it easier to manage infrastructure across multiple environments.
 
@@ -96,28 +97,36 @@ This project uses a remote state backend hosted on Amazon S3 with DynamoDB for s
 To get started with this project, follow these steps:
 
 	1.	Initialize Terraform:
-    ```
+    
+    ```hcl
     terraform init
     ```
     2. Select the Workspace:
-    ```
+    
+    ```hcl
     terraform workspace select dev  # or staging/prod
+    
     ```
     3. Plan the Infrastructure:
-    ```
+    
+    ```hcl
     terraform plan -out=terraform-plan-dev.out
     terraform show terraform-plan-dev.out
+    
     ```
     4.	Apply the Changes:
-    ```
+   
+    ```hcl
     terraform apply
     terraform apply -target="module.vpc" -auto-approve
     terraform apply -target="module.eks" -auto-approve
     terraform apply -auto-approve
+    
     ```
     5. Destroy the Infrastructure (if needed):
-    ```
+    
+    ```hcl
     terraform destroy -auto-approve
     ```
 
-Note: Still adding modules and configuring a github actions pipeline (WIP)
+> Note: Still adding modules and configuring a github actions pipeline (WIP)
