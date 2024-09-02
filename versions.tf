@@ -15,11 +15,4 @@ terraform {
       version = ">= 2.20"
     }
   }
-
-  ##  Used for end-to-end testing on project; update to suit your needs
-  backend "s3" {
-    bucket = "terraform-state-file-sri"
-    region = "us-east-1"
-    key    = "eec/eks-cluster-with-vpc/terraform.tfstate"
-  }
 }
