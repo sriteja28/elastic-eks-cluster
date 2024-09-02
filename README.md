@@ -130,3 +130,5 @@ terraform apply -auto-approve
 ```hcl
 terraform destroy -auto-approve
 ```
+
+> Note: > Note: Still adding modules and configuring a github actions pipeline (WIP) along with [terragrunt](https://terragrunt.gruntwork.io/)
