@@ -67,6 +67,8 @@ my-infrastructure/
 └── README.md                   # This README file
 ```
 
+---
+
 ## Environments and Workspaces
 
 This project uses Terraform workspaces to manage different environments. The environments are:
@@ -86,6 +88,8 @@ This project uses Terraform workspaces to manage different environments. The env
 ```
 
 Workspaces allow us to isolate the state of each environment, ensuring that changes in one environment do not affect others. This approach reduces code duplication and makes it easier to manage infrastructure across multiple environments.
+
+---
 
 ## Remote State Backend
 
@@ -171,6 +175,7 @@ terraform apply -auto-approve
 terraform destroy -auto-approve
 ```
 
+---
 
 # Future Enhancements for EKS Cluster
 
@@ -259,8 +264,6 @@ As we aim to enhance our existing EKS cluster, we can leverage the latest open-s
 ### **OpenCost**
 - **Description:** OpenCost is an open-source tool that provides real-time cost monitoring and optimization insights for Kubernetes clusters. It helps track the costs of individual resources and workloads, enabling better cost management.
 - **Implementation:** Deploy OpenCost to monitor the costs associated with running Kubernetes workloads on AWS. This tool will provide insights into cost distribution, allowing for better resource allocation and cost-saving strategies.
-
----
 
 By implementing these enhancements, we will significantly improve the scalability, security, reliability, observability, and cost efficiency of our EKS cluster, while also enhancing our infrastructure management processes with advanced Terraform tools.
 
