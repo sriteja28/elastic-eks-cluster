@@ -1,0 +1,45 @@
+# .github/workflows/terraform.yml
+name: 'Terraform CI/CD'
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    name: 'Terraform Plan and Apply'
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        workspace: [dev, staging, prod]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.3.0
+
+    - name: Select Terraform Workspace
+      run: terraform workspace select ${{ matrix.workspace }} || terraform workspace new ${{ matrix.workspace }}
+
+    - name: Prepare terraform.tfvars
+      run: |
+        cp terraform.tfvars.tpl terraform.tfvars
+        sed -i "s/\${WORKSPACE_NAME}/${{ matrix.workspace == 'dev' ? 'dev' : matrix.workspace == 'staging' ? 'staging' : 'prod' }}/g" terraform.tfvars
+        sed -i "s/\${WORKSPACE_REGION}/${{ matrix.workspace == 'dev' ? 'us-east-1' : matrix.workspace == 'staging' ? 'us-west-1' : 'us-west-2' }}/g" terraform.tfvars
+        sed -i "s/\${WORKSPACE_ENV}/${{ matrix.workspace == 'dev' ? 'dev' : matrix.workspace == 'staging' ? 'staging' : 'prod' }}/g" terraform.tfvars
+        sed -i "s/\${WORKSPACE_VPC_CIDR}/${{ matrix.workspace == 'dev' ? '10.0.0.0/16' : matrix.workspace == 'staging' ? '10.1.0.0/16' : '10.2.0.0/16' }}/g" terraform.tfvars
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Plan
+      run: terraform plan -out=tfplan-${{ matrix.workspace }}.out
