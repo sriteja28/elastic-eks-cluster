@@ -39,7 +39,7 @@ locals {
 }
 
 module "vpc" {
-  source = "../../modules/networking/vpc"
+  source = "./modules/networking/vpc"
 
   vpc_name  = "${local.name}-vpc"
   vpc_cidr  = local.vpc_cidr
@@ -50,7 +50,7 @@ module "vpc" {
 }
 
 module "eks" {
-  source = "../../modules/compute/eks"
+  source = "./modules/compute/eks"
 
   cluster_name  = "${local.name}-eks-cluster"
   cluster_version = var.cluster_version
@@ -61,11 +61,11 @@ module "eks" {
   }
 }
 
-module "ecr" {
-  source  = "../../modules/application/ecr"
-  microservices = ["service1", "service2"]
-  environment   = local.environment
-  tags          = {
-    Environment = local.environment
-  }
-}
+# module "ecr" {
+ # source  = "./modules/application/ecr"
+ # microservices = ["service1", "service2"]
+ # environment   = local.environment
+ # tags          = {
+ #   Environment = local.environment
+ # }
+#}
