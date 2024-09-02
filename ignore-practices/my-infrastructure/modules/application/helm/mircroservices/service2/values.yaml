@@ -1,0 +1,10 @@
+replicaCount: 2
+
+image:
+  repository: <ECR_URI>/service1
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 50052
