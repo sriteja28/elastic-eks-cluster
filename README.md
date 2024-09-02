@@ -1,8 +1,6 @@
-# My Infrastructure Project
+## Overview
 
 This project is designed following best practices as recommended by HashiCorp for developing Terraform modules and organizing infrastructure as code. The primary goal of this project is to create a reusable, maintainable, and scalable infrastructure setup that leverages Terraform workspaces to manage different environments (dev, stage, prod) effectively.
-
-## Overview
 
 ### Key Features:
 - **Best Practices**: The project structure follows the guidelines outlined by HashiCorp for [module composition](https://developer.hashicorp.com/terraform/language/modules/develop/composition), ensuring a clean and modular approach to infrastructure management.
@@ -74,7 +72,7 @@ This project uses Terraform workspaces to manage different environments. The env
 	•	stage: Staging environment
 	•	prod: Production environment
 
-    ```hcl
+    ```sh
     ❯ terraform workspace list
      default
      dev
@@ -97,35 +95,36 @@ This project uses a remote state backend hosted on Amazon S3 with DynamoDB for s
 To get started with this project, follow these steps:
 
 	1.	Initialize Terraform:
-    
-    ```hcl
+   
+    ```sh
     terraform init
     ```
+
     2. Select the Workspace:
-    
-    ```hcl
+  
+    ```sh
     terraform workspace select dev  # or staging/prod
-    
     ```
+
     3. Plan the Infrastructure:
-    
-    ```hcl
+  
+    ```sh
     terraform plan -out=terraform-plan-dev.out
     terraform show terraform-plan-dev.out
-    
     ```
+
     4.	Apply the Changes:
    
-    ```hcl
+    ```sh
     terraform apply
     terraform apply -target="module.vpc" -auto-approve
     terraform apply -target="module.eks" -auto-approve
     terraform apply -auto-approve
-    
     ```
+
     5. Destroy the Infrastructure (if needed):
-    
-    ```hcl
+  
+    ```sh
     terraform destroy -auto-approve
     ```
 
