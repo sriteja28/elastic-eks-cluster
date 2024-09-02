@@ -93,32 +93,32 @@ This project uses a remote state backend hosted on Amazon S3 with DynamoDB for s
 - **State Locking**: DynamoDB is used for state locking, ensuring that only one Terraform process can modify the state at a time, preventing conflicts and ensuring consistency.
 - **Secure Storage**: The state file is securely stored in S3, with access controlled via IAM policies.
 
-## Deply
+## Deploy and Destory
 
 To get started with this project, follow these steps:
 
 1.	Initialize Terraform:
    
-```sh
+```hcl
 terraform init
 ```
 
 2. Select the Workspace:
   
-```sh
+```hcl
 terraform workspace select dev  # or staging/prod
 ```
 
 3. Plan the Infrastructure:
   
-```sh
+```hcl
 terraform plan -out=terraform-plan-dev.out
 terraform show terraform-plan-dev.out
 ```
 
  4.	Apply the Changes (use per need):
    
-```sh
+```hcl
 terraform apply
 terraform apply -target="module.vpc" -auto-approve
 terraform apply -target="module.eks" -auto-approve
@@ -127,6 +127,6 @@ terraform apply -auto-approve
 
 5. Destroy the Infrastructure (if needed):
   
-```sh
+```hcl
 terraform destroy -auto-approve
 ```
