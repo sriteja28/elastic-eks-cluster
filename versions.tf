@@ -20,6 +20,7 @@ terraform {
   backend "s3" {
     bucket = "terraform-state-file-sri"
     region = "us-east-1"
-    key    = "eec/eks-cluster-with-vpc/terraform.tfstate"
+    key    = "eks/infra/state/terraform.tfstate"
+    dynamodb_table = "terraform-locks"
   }
 }
