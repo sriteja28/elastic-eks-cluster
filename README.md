@@ -11,7 +11,7 @@ This project is designed following best practices as recommended by HashiCorp fo
 ## Folder Structure
 
 The project is organized into the following structure:
-> Note: Still adding modules and configuring a github actions pipeline (WIP)
+> Note: (WIP) Still adding modules, for now we have eks, vpc, ecr
 
 ```sh
 my-infrastructure/
@@ -131,4 +131,4 @@ terraform apply -auto-approve
 terraform destroy -auto-approve
 ```
 
-> Note: > Note: Still adding modules and configuring a github actions pipeline (WIP) along with [terragrunt](https://terragrunt.gruntwork.io/)
+> Note: (WIP) Still adding modules and configuring a github actions pipeline along with [terragrunt](https://terragrunt.gruntwork.io/)
