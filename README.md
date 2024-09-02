@@ -11,6 +11,7 @@ This project is designed following best practices as recommended by HashiCorp fo
 ## Folder Structure
 
 The project is organized into the following structure:
+> Note: Still adding modules and configuring a github actions pipeline (WIP)
 
 ```sh
 my-infrastructure/
@@ -68,17 +69,9 @@ my-infrastructure/
 
 This project uses Terraform workspaces to manage different environments. The environments are:
 
-	•	dev: Development environment
-	•	stage: Staging environment
-	•	prod: Production environment
-
-    ```sh
-    ❯ terraform workspace list
-     default
-     dev
-   * prod
-     staging
-    ```
+-	**dev**: Development environment
+-	**stage**: Staging environment
+-	**prod**: Production environment
 
 Workspaces allow us to isolate the state of each environment, ensuring that changes in one environment do not affect others. This approach reduces code duplication and makes it easier to manage infrastructure across multiple environments.
 
@@ -127,5 +120,3 @@ To get started with this project, follow these steps:
     ```sh
     terraform destroy -auto-approve
     ```
-
-> Note: Still adding modules and configuring a github actions pipeline (WIP)
