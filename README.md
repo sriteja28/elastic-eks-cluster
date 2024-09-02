@@ -73,14 +73,13 @@ This project uses Terraform workspaces to manage different environments. The env
 	•	dev: Development environment
 	•	stage: Staging environment
 	•	prod: Production environment
-    ```
+    ```hcl
     ❯ terraform workspace list
-
      default
      dev
    * prod
      staging
-    ```
+
 
 Workspaces allow us to isolate the state of each environment, ensuring that changes in one environment do not affect others. This approach reduces code duplication and makes it easier to manage infrastructure across multiple environments.
 
