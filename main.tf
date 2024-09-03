@@ -26,9 +26,18 @@ provider "helm" {
   }
 }
 
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  # Do not include local zones
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
+
 
 locals {
+  azs  = slice(data.aws_availability_zones.available.names, 0, 3)
+
   name = terraform.workspace == "dev" ? var.name_dev : terraform.workspace == "staging" ? var.name_staging : var.name_prod
 
   region = terraform.workspace == "dev" ? var.region_dev : terraform.workspace == "staging" ? var.region_staging : var.region_prod
