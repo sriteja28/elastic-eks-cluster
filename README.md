@@ -101,6 +101,15 @@ This project uses a remote state backend hosted on Amazon S3 with DynamoDB for s
 
 ---
 
+## Prerequisites
+Ensure that you have installed the following tools locally:
+
+- [awscli](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli)
+
+---
+
 ## Deploy and Destory
 
 To get started with this project, follow these steps:
@@ -127,30 +136,6 @@ terraform show terraform-plan-dev.out
 Example output
 
 ```hcl
-  # module.eks.module.eks.module.kms.aws_kms_key.this[0] will be created
-  + resource "aws_kms_key" "this" {
-      + arn                                = (known after apply)
-      + bypass_policy_lockout_safety_check = false
-      + customer_master_key_spec           = "SYMMETRIC_DEFAULT"
-      + description                        = "dev-eks-cluster cluster encryption key"
-      + enable_key_rotation                = true
-      + id                                 = (known after apply)
-      + is_enabled                         = true
-      + key_id                             = (known after apply)
-      + key_usage                          = "ENCRYPT_DECRYPT"
-      + multi_region                       = false
-      + policy                             = (known after apply)
-      + rotation_period_in_days            = (known after apply)
-      + tags                               = {
-          + "Environment"           = "dev"
-          + "terraform-aws-modules" = "eks"
-        }
-      + tags_all                           = {
-          + "Environment"           = "dev"
-          + "terraform-aws-modules" = "eks"
-        }
-    }
-
   # module.eks.module.eks.module.eks_managed_node_group["initial"].module.user_data.null_resource.validate_cluster_service_cidr will be created
   + resource "null_resource" "validate_cluster_service_cidr" {
       + id = (known after apply)
