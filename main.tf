@@ -52,7 +52,7 @@ module "vpc" {
 
   vpc_name  = "${local.name}-vpc"
   vpc_cidr  = local.vpc_cidr
-  azs       = data.aws_availability_zones.available.names
+  azs       = local.azs
   tags      = {
     Environment = local.environment
   }
